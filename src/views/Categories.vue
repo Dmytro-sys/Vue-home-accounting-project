@@ -4,67 +4,52 @@
       <h3>Категорії</h3>
     </div>
     <section>
-      <div class="row">
-        <div class="col s12 m6">
-          <div>
-            <div class="page-subtitle">
-              <h4>Створити</h4>
-            </div>
+      <Loader v-if="loading" />
+      <div class="row" v-else>
 
-            <form>
-              <div class="input-field">
-                <input id="name" type="text">
-                <label for="name">Назва</label>
-                <span class="helper-text invalid">Введіть назву</span>
-              </div>
+        <CategoryCreate @created="addNewCategory"/>
 
-              <div class="input-field">
-                <input id="limit" type="number">
-                <label for="limit">Ліміт</label>
-                <span class="helper-text invalid">Мінімальна величина</span>
-              </div>
+       <CategoryEdit
+       v-if="categories.length" 
+       :categories="categories"
+       :key="categories.length + updateCount"
+       @updated="updatedCategory"
+       />
 
-              <button class="btn waves-effect waves-light" type="submit">
-                Створити
-                <i class="material-icons right">send</i>
-              </button>
-            </form>
-          </div>
-        </div>
-        <div class="col s12 m6">
-          <div>
-            <div class="page-subtitle">
-              <h4>Редагувати</h4>
-            </div>
-
-            <form>
-              <div class="input-field">
-                <select>
-                  <option>Category</option>
-                </select>
-                <label>Виберіть категорію</label>
-              </div>
-
-              <div class="input-field">
-                <input type="text" id="name">
-                <label for="name">Назва</label>
-                <span class="helper-text invalid">TITLE</span>
-              </div>
-
-              <div class="input-field">
-                <input id="limit" type="number">
-                <label for="limit">Ліміт</label>
-                <span class="helper-text invalid">LIMIT</span>
-              </div>
-
-              <button class="btn waves-effect waves-light" type="submit">
-                Оновити
-                <i class="material-icons right">send</i>
-              </button>
-            </form>
-          </div>
-        </div>
+      <p v-else class="center">Нема створених категорій</p>
       </div>
     </section>
   </div>
 </template>
+
+<script>
+import CategoryCreate from '@/components/CategoryCreate'
+import CategoryEdit from '@/components/CategoryEdit'
+
+export default {
+  name: 'categories',
+  data: () => ({
+    categories: [],
+    loading: true,
+    updateCount: 0
+  }),
+  components: {
+    CategoryCreate, CategoryEdit
+  },
+  async mounted() {
+    this.categories = await this.$store.dispatch('fetchCategories')
+    this.loading = false
+  },
+  methods: {
+    addNewCategory(category) {
+      this.categories.push(category)
+    },
+    updatedCategory(category) {
+      const catIndex = this.categories.findIndex(cat => cat.id === category.id)
+      this.categories[catIndex].title = category.title
+      this.categories[catIndex].limit = category.limit
+      this.updateCount++
+    }
+  }
+}
+</script>
